@@ -36,7 +36,7 @@ class SystemModel:
             raise ValueError("Unknown description!")
 
 
-csv_file_path = 'real_pt2_response.csv'
+csv_file_path = 'real_pt4_response.csv'
 
 df = pd.read_csv(csv_file_path)
 
@@ -57,7 +57,7 @@ best_overall_params = None
 
 for model_type in model_types:
     for order in range(1, max_order + 1):
-        print(f"Optimizing {model_type}{order}...")
+        print(f"\nOptimizing {model_type}{order}...")
 
         def objective(params):
             param_dict = {'K': params[0]}
