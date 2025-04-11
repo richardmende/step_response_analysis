@@ -1,12 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy import exp
 
 from scipy.signal import savgol_filter
+from scipy.optimize import minimize
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-
-from numpy import exp
 
 
 class SystemModel:

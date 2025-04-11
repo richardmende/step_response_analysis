@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./helps_for_overview"
+    ]
+}
