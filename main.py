@@ -36,7 +36,7 @@ class SystemModel:
             raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
+csv_file_path = 'data_for_it_systems/real_it10_response.csv'
 
 df = pd.read_csv(csv_file_path)
 
@@ -60,7 +60,7 @@ for model_type in model_types:
         max_order = 3
 
     for order in range(1, max_order + 1):
-        print(f"Optimizing {model_type}{order}...")
+        print(f"\nOptimizing {model_type}{order}...")
 
         def objective(params):
             param_dict = {'K': params[0]}
@@ -113,7 +113,7 @@ for model_type in model_types:
 
 
 
-print("\nBest model found:")
+print("\n\nBest model found:")
 print(f"Type: {best_overall_model[0]}{best_overall_model[1]}")
 print(f"Params: {best_overall_params}")
 print(f"Score: {best_overall_score:.4f}")
