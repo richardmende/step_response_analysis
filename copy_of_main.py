@@ -36,7 +36,7 @@ class SystemModel:
             raise ValueError("Unknown description!")
 
 
-csv_file_path = 'real_pt1_response.csv'
+csv_file_path = 'real_pt2_response.csv'
 
 df = pd.read_csv(csv_file_path)
 
