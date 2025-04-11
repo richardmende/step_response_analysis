@@ -29,7 +29,7 @@ class SystemModel:
             response = np.copy(t)
             for i in range(1, self.order + 1):
                 T = self.parameters[f'T{i}']
-                response *= (1 - exp(-t / T))
+                response *= np.clip((1 - exp(-t / T)))
             return response
         
         else:
@@ -52,13 +52,10 @@ best_overall_score = float('inf')
 best_overall_model = None
 best_overall_params = None
 
-for model_type in model_types:
-    # Setze max_order abhängig vom model_type
-    if model_type == 'PT':
-        max_order = 10
-    elif model_type == 'IT':
-        max_order = 3
+max_order = 25
 
+for model_type in model_types:
+    
     for order in range(1, max_order + 1):
         print(f"\nOptimizing {model_type}{order}...")
 
