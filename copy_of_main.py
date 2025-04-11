@@ -54,9 +54,7 @@ best_overall_model = None
 best_overall_params = None
 
 
-print(time_values)
 
-# 3. Modelloptimierung über alle Kombinationen
 for model_type in model_types:
     for order in range(1, max_order + 1):
         print(f"Optimizing {model_type}{order}...")
@@ -70,9 +68,9 @@ for model_type in model_types:
                 model = SystemModel(model_type=model_type, order=order, parameters=param_dict)
                 response = model.step_response(time_values)
             except:
-                return np.inf  # Modell ungültig → hoher Fehler
+                return np.inf
+            
 
-            # Fehlermaße berechnen
             mae = mean_absolute_error(smoothed_values_savgol, response)
             mse = mean_squared_error(smoothed_values_savgol, response)
             rmse = np.sqrt(mse)
@@ -84,7 +82,7 @@ for model_type in model_types:
                             (np.abs(smoothed_values_savgol) + np.abs(response)))
             transformed_smape = np.exp(10 * smape) - 1
             
-            # Gesamtgüte-Kriterium (je kleiner, desto besser)
+
             score = (
                 10 * transformed_r2 +
                 3 * mape +
@@ -97,7 +95,6 @@ for model_type in model_types:
             
             return score
 
-        # Startwerte und Schranken definieren
         x0 = [1.0] * (order + 1)
         bounds = [(0.001, 2)] + [(0.2, time_values[-1])] * order
 
@@ -114,7 +111,7 @@ for model_type in model_types:
             best_overall_params = params
 
 
-# 4. Bestes Modell erzeugen und visualisieren
+
 print("\nBest model found:")
 print(f"Type: {best_overall_model[0]}{best_overall_model[1]}")
 print(f"Params: {best_overall_params}")
@@ -132,8 +129,8 @@ best_model = SystemModel(
 best_response = best_model.step_response(time_values)
 
 
-# 5. Plot aller Kurven
-plt.plot(time_values, smoothed_values_savgol, label='smoothed step response', color='green')
+
+plt.plot(time_values, smoothed_values_savgol, label='step response (smoothed)', color='green')
 plt.plot(time_values, best_response, label=f'{best_overall_model[0]}{best_overall_model[1]} fit', color='blue')
 plt.xlabel('time [s]')
 plt.ylabel('step response x(t)')
