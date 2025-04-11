@@ -26,7 +26,7 @@ class SystemModel:
             return response
         
         elif self.model_type == 'IT':
-            response = t 
+            response = np.copy(t)
             for i in range(1, self.order + 1):
                 T = self.parameters[f'T{i}']
                 response *= (1 - exp(-t / T))
@@ -41,7 +41,6 @@ csv_file_path = 'real_pt1_response.csv'
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
-copy_of_time_values = time_values.copy()
 response_values = df['Response'].values
 
 smoothed_values_savgol = savgol_filter(response_values, window_length=151, polyorder=3)
@@ -55,7 +54,7 @@ best_overall_model = None
 best_overall_params = None
 
 
-
+print(time_values)
 
 # 3. Modelloptimierung über alle Kombinationen
 for model_type in model_types:
@@ -84,7 +83,7 @@ for model_type in model_types:
             smape = np.mean(2 * np.abs(response - smoothed_values_savgol) /
                             (np.abs(smoothed_values_savgol) + np.abs(response)))
             transformed_smape = np.exp(10 * smape) - 1
-
+            
             # Gesamtgüte-Kriterium (je kleiner, desto besser)
             score = (
                 10 * transformed_r2 +
@@ -95,7 +94,7 @@ for model_type in model_types:
                 transformed_smape +
                 mae
             )
-
+            
             return score
 
         # Startwerte und Schranken definieren
@@ -130,15 +129,12 @@ best_model = SystemModel(
     order=best_overall_model[1],
     parameters=param_dict
 )
-best_response = best_model.step_response(copy_of_time_values)
+best_response = best_model.step_response(time_values)
 
-
-print(best_response)
 
 # 5. Plot aller Kurven
-#plt.plot(copy_of_time_values, response_values, label='real step response', color='red')                # this is too noisy
-plt.plot(copy_of_time_values, smoothed_values_savgol, label='smoothed step response', color='green')
-plt.plot(copy_of_time_values, best_response, label=f'{best_overall_model[0]}{best_overall_model[1]} fit', color='blue')
+plt.plot(time_values, smoothed_values_savgol, label='smoothed step response', color='green')
+plt.plot(time_values, best_response, label=f'{best_overall_model[0]}{best_overall_model[1]} fit', color='blue')
 plt.xlabel('time [s]')
 plt.ylabel('step response x(t)')
 plt.title('Best system model fit')
