@@ -6,6 +6,8 @@ from scipy.signal import savgol_filter
 from scipy.optimize import minimize
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
+from calculate_characteristic_values import calculate_characteristic_value_for_every_method
+
 
 
 def step_response(model_type, order, parameters, t):
@@ -149,3 +151,6 @@ axes[1].legend()
 
 plt.tight_layout()
 plt.show()
+
+
+calculate_characteristic_value_for_every_method(best_overall_params, best_response, time_values)
