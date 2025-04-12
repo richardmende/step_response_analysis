@@ -58,7 +58,7 @@ max_order = 20
 
 for model_type in model_types:
     for order in range(1, max_order + 1):
-        print(f"\nOptimizing {model_type}{order}...")
+        print(f"\nOptimizing {model_type}{order} ...")
 
         def objective(params):
             param_dict = {'K': params[0]}
@@ -103,7 +103,7 @@ for model_type in model_types:
         score = result.fun
         params = result.x
 
-        print(f"Score: {score:.4f}, Params: {params}")
+        print(f"Score: {score:.4f} \nParams: {params}")
 
         if score < best_overall_score:
             best_overall_score = score
