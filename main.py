@@ -9,31 +9,24 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 
-class SystemModel:
-    def __init__(self, model_type, order, parameters):
-        self.model_type = model_type    # PT or IT
-        self.order = order              # 1 / 2 / 3 / 4, dependent on the number of delay time constants of the system
-        self.parameters = parameters    # K / T1 / T2 / ...
+def step_response(model_type, order, parameters, t):
     
-
-    def step_response(self, t):
-
-        if self.model_type == 'PT':
-            response = self.parameters['K']
-            for i in range(1, self.order + 1):
-                T = self.parameters[f'T{i}']
-                response *= (1 - exp(-t / T))
-            return response
-        
-        elif self.model_type == 'IT':
-            response = np.copy(t)
-            for i in range(1, self.order + 1):
-                T = self.parameters[f'T{i}']
-                response *= np.clip((1 - exp(-t / T)))
-            return response
-        
-        else:
-            raise ValueError("Unknown description!")
+    if model_type == 'PT':
+        response = parameters['K']
+        for i in range(1, order + 1):
+            T = parameters[f'T{i}']
+            response *= (1 - np.exp(-t / T))
+        return response
+    
+    elif model_type == 'IT':
+        response = np.copy(t)
+        for i in range(1, order + 1):
+            T = parameters[f'T{i}']
+            response *= np.clip((1 - np.exp(-t / T)), 0, 1) 
+        return response
+    
+    else:
+        raise ValueError("Unknown description!")
 
 
 csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
@@ -46,7 +39,7 @@ response_values = df['Response'].values
 
 #window_length_for_savgol = round(time_values[-1] / 3)
 window_length_for_savgol = round(len(time_values) / 3)
-print(window_length_for_savgol)
+#print(window_length_for_savgol)
 
 smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
 
@@ -70,8 +63,7 @@ for model_type in model_types:
                 param_dict[f'T{i}'] = params[i]
 
             try:
-                model = SystemModel(model_type=model_type, order=order, parameters=param_dict)
-                response = model.step_response(time_values)
+                response = step_response(model_type=model_type, order=order, parameters=param_dict, t=time_values)
             except:
                 return np.inf
 
@@ -82,7 +74,7 @@ for model_type in model_types:
             r2 = r2_score(smoothed_values_savgol, response)
             transformed_r2 = np.abs(r2 - 1)
             mape = np.mean(np.abs((smoothed_values_savgol - response) / smoothed_values_savgol))
-            smape = np.mean(2 * np.abs(response - smoothed_values_savgol) /
+            smape = np.mean(2 * np.abs(response - smoothed_values_savgol) / 
                             (np.abs(smoothed_values_savgol) + np.abs(response)))
             transformed_smape = np.exp(10 * smape) - 1
 
@@ -98,8 +90,8 @@ for model_type in model_types:
 
             return score
 
-        x0 = [1.0] * (order + 1)
-        bounds = [(0.001, 2)] + [(0.2, time_values[-1])] * order
+        x0 = [1.0] * (order + 1)  # Initiale Parameterwerte (z. B. K=1 und T1, T2, ...)
+        bounds = [(0.001, 2)] + [(0.2, time_values[-1])] * order  # Grenzen für die Parameter
 
         result = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
 
@@ -124,12 +116,13 @@ param_dict = {'K': best_overall_params[0]}
 for i in range(1, best_overall_model[1] + 1):
     param_dict[f'T{i}'] = best_overall_params[i]
 
-best_model = SystemModel(
+
+best_response = step_response(
     model_type=best_overall_model[0],
     order=best_overall_model[1],
-    parameters=param_dict
+    parameters=param_dict,
+    t=time_values
 )
-best_response = best_model.step_response(time_values)
 
 
 
