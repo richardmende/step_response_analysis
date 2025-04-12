@@ -130,8 +130,6 @@ best_response, _ = step_response(
 )
 
 
-best_response_smoothed = savgol_filter(best_response, window_length=best_window_length_for_savgol, polyorder=3)
-
 
 fig, axes = plt.subplots(1, 2)
 
@@ -143,7 +141,7 @@ axes[0].set_title('Comparison between Real and Smoothed Step Response')
 axes[0].legend()
 
 axes[1].plot(time_values, smoothed_values_savgol, label='Smoothed Step Response', color='green', linestyle='--')
-axes[1].plot(time_values, best_response_smoothed, label=f'Best Fit ({best_overall_model[0]}{best_overall_model[1]})', color='blue')
+axes[1].plot(time_values, best_response, label=f'Best Fit ({best_overall_model[0]}{best_overall_model[1]})', color='blue')
 axes[1].set_xlabel('Time [s]')
 axes[1].set_ylabel('Step Response x(t)')
 axes[1].set_title('Comparison between Smoothed Step Response and Best Fit of System Models')
