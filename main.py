@@ -128,10 +128,21 @@ best_response = best_model.step_response(time_values)
 
 
 
-plt.plot(time_values, smoothed_values_savgol, label='step response (smoothed)', color='green')
-plt.plot(time_values, best_response, label=f'{best_overall_model[0]}{best_overall_model[1]} fit', color='blue')
-plt.xlabel('time [s]')
-plt.ylabel('step response x(t)')
-plt.title('Best system model fit')
-plt.legend()
+fig, axes = plt.subplots(1, 2)
+
+axes[0].plot(time_values, response_values, label='real step response', color='red')
+axes[0].plot(time_values, smoothed_values_savgol, label='smoothed step response', color='green', linestyle='--')
+axes[0].set_xlabel('time [s]')
+axes[0].set_ylabel('step response x(t)')
+axes[0].set_title('comparison between real and smoothed step response')
+axes[0].legend()
+
+axes[1].plot(time_values, smoothed_values_savgol, label='smoothed step response', color='green', linestyle='--')
+axes[1].plot(time_values, best_response, label=f'best fit ({best_overall_model[0]}{best_overall_model[1]})', color='blue')
+axes[1].set_xlabel('time [s]')
+axes[1].set_ylabel('step response x(t)')
+axes[1].set_title('comparison between smoothed step response and best fit of system models')
+axes[1].legend()
+
+plt.tight_layout()
 plt.show()
