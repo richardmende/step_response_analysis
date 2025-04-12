@@ -93,8 +93,8 @@ for model_type in model_types:
 
             return score
 
-        x0 = [1.0] * (order + 1)
-        bounds = [(0.001, 2)] + [(0.2, time_values[-1])] * order
+        x0 = [1.0] + [time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)]       # "x0 = [1.0] * (order + 1)" for similar time constants
+        bounds = [(0.001, 2)] + [(0.1, time_values[-1])] * order
 
         result = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
 
