@@ -36,14 +36,19 @@ class SystemModel:
             raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_it_systems/real_it10_response.csv'
+csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
 
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
 response_values = df['Response'].values
 
-smoothed_values_savgol = savgol_filter(response_values, window_length=151, polyorder=3)
+
+#window_length_for_savgol = round(time_values[-1] / 3)
+window_length_for_savgol = round(len(time_values) / 3)
+print(window_length_for_savgol)
+
+smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
 
 
 model_types = ['PT', 'IT']
@@ -52,7 +57,7 @@ best_overall_score = float('inf')
 best_overall_model = None
 best_overall_params = None
 
-max_order = 25
+max_order = 20
 
 for model_type in model_types:
     
