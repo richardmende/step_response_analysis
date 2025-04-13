@@ -2,6 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from scipy.integrate import trapezoid
+from scipy.optimize import minimize_scalar
+
+
+
 def calculate_characteristic_value_for_every_method(best_system_description, best_order, best_fitting_params, best_fitting_time_response, time_values_response):
 
     if best_system_description == 'PT':
@@ -15,8 +20,40 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         K_S = K_infinity
 
 
-        # t_sum
-        t_sum = sum(best_fitting_params[1:])
+        def objective(t_split, t, x, k_inf):
+
+            # t_sum
+            idx = np.searchsorted(t, t_split)
+
+            # A1: Fläche unterhalb der Sprungantwort bis t_i
+            A1 = trapezoid(x[:idx], t[:idx])                    # include starting value of input jump, here it is considered as 0 !!!
+
+            # A2: Fläche zwischen Sprungantwort und k_inf ab t_i bis zum Ende
+            A2 = trapezoid(k_inf - x[idx:], t[idx:])
+
+            diff = abs(A1 - A2)
+
+            return diff
+
+        result = minimize_scalar(objective, args=(time_values_response, best_fitting_time_response, K_infinity), bounds = (time_values_response[1], time_values_response[-1]), method='bounded')
+
+        t_sum = result.x
+        idx = np.searchsorted(time_values_response, t_sum)
+
+        plt.plot(time_values_response, best_fitting_time_response, label='Sprungantwort $x(t)$')
+        plt.fill_between(time_values_response[:idx], 0, best_fitting_time_response[:idx], alpha=0.3, label='A1', color='green')
+        plt.fill_between(time_values_response[idx:], best_fitting_time_response[idx:], K_infinity, alpha=0.3, label='A2', color='limegreen')
+        plt.axvline(t_sum, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum:.4f}')
+        plt.axhline(K_infinity, color='gray', linestyle=':', label='$K_\\infty$')
+        plt.xlabel('Zeit $t$')
+        plt.ylabel('Sprungantwort $x(t)$')
+        plt.title('T-Summenverfahren (Direkte Variante)')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+        # before: t_sum = sum(best_fitting_params[1:])
+
 
         # time percent
         percentages = [10, 20, 50, 80, 90]
@@ -29,6 +66,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             time_percent_values.append(time_values_response[number])
 
 
+        # tangent
         if best_order == 1:         
             
             # ONLY POSSIBLE, IF THE SYSTEM HAS A DEAD TIME !!! HERE APPROXIMATED AS ONE TO BE ABLE TO CONTINUE!
