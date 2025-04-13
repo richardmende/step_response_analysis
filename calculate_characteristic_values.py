@@ -2,53 +2,65 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def calculate_characteristic_value_for_every_method(best_fitting_params, best_fitting_time_response, time_values_response):
+def calculate_characteristic_value_for_every_method(best_system_description, best_order, best_fitting_params, best_fitting_time_response, time_values_response):
 
-    K_infinity = best_fitting_params[0]
-    
-    # Skalierung auf Einheitssprung beachten !!!
-    # K_S = K_infinity / step_hight !!!
+    if best_system_description == 'PT':
 
-    # hier zur VEREINFACHUNG und NACHVOLLZIEHBARKEIT!!!
-    K_S = K_infinity
+        K_infinity = best_fitting_params[0]
+        
+        # Skalierung auf Einheitssprung beachten !!!
+        # K_S = K_infinity / step_hight !!!
 
-
-    # t_sum
-    t_sum = sum(best_fitting_params[1:])
+        # hier zur VEREINFACHUNG und NACHVOLLZIEHBARKEIT!!!
+        K_S = K_infinity
 
 
-    # calculating turning point
-    first_derivative = np.gradient(best_fitting_time_response, time_values_response)
-    second_derivative = np.gradient(first_derivative, time_values_response)
+        # t_sum
+        t_sum = sum(best_fitting_params[1:])
 
-    zero_crossing = np.where(np.diff(np.sign(second_derivative)))[0]
+        # time percent
+        percentages = [10, 20, 50, 80, 90]
+        percentage_values = [K_S * (p / 100.0) for p in percentages]
 
-    if len(zero_crossing) == 0:
-        print("no turning point available")
-        return None, None
-    
-    idx = zero_crossing[0]
-    turning_point_time = time_values_response[idx]
-    turning_point_value = best_fitting_time_response[idx]
+        time_percent_values = []
 
-    # turning point tangent
-    slope = first_derivative[idx]
-    y_axis_intercept = turning_point_value - slope * turning_point_time
-    turning_point_tangent = slope * time_values_response + y_axis_intercept
-
-    t_u = - y_axis_intercept / slope
-    t_g = (K_S - y_axis_intercept) / slope
+        for target in percentage_values:
+            number = np.argmax(np.array(best_fitting_time_response) >= target)
+            time_percent_values.append(time_values_response[number])
 
 
-    # time percent
-    percentages = [10, 20, 50, 80, 90]
-    percentage_values = [K_S * (p / 100.0) for p in percentages]
+        if best_order == 1:         
+            
+            # ONLY POSSIBLE, IF THE SYSTEM HAS A DEAD TIME !!! HERE APPROXIMATED AS ONE TO BE ABLE TO CONTINUE!
+            t_u = 1
 
-    time_percent_values = []
+            # calculating tangent
 
-    for target in percentage_values:
-        number = np.argmax(np.array(best_fitting_time_response) >= target)
-        time_percent_values.append(time_values_response[number])
+            tangent = time_values_response * best_fitting_params[0] / best_fitting_params[1]
+            t_g = K_infinity * best_fitting_params[1] / best_fitting_params[0]                  # should be T1 !
+
+        else:
+
+            # calculating turning point
+            first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+            second_derivative = np.gradient(first_derivative, time_values_response)
+
+            zero_crossing = np.where(np.diff(np.sign(second_derivative)))[0]
+            
+            idx = zero_crossing[0]
+            turning_point_time = time_values_response[idx]
+            turning_point_value = best_fitting_time_response[idx]
+
+            # turning point tangent
+            slope = first_derivative[idx]
+            y_axis_intercept = turning_point_value - slope * turning_point_time
+            tangent = slope * time_values_response + y_axis_intercept     # turning_point_tangent
+
+            t_u = - y_axis_intercept / slope                # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
+            t_g = (K_infinity - y_axis_intercept) / slope
+
+
+        
 
     plt.figure(figsize=(10, 6))
 
@@ -64,9 +76,10 @@ def calculate_characteristic_value_for_every_method(best_fitting_params, best_fi
 
 
     # turning point tangent
-    plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], turning_point_tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='turning point tangent', linestyle='--', color='cyan')
+    plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='turning point tangent', linestyle='--', color='cyan')
     # turning point
-    plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
+    if best_system_description == 'PT' and best_order >= 2:
+        plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
 
 
     # Markiere Verzugszeit t_u und Ausgleichszeit t_g
