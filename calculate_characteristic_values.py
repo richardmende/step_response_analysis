@@ -98,12 +98,18 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             plt.scatter(time_percent_values[i], percentage_values[i], label=f't_{percent} = {time_percent_values[i]:.2f}s', zorder=5)
     
 
+        # tangent
+        plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='tangent', linestyle='--', color='cyan')
 
-    # tangent
-    plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='turning point tangent', linestyle='--', color='cyan')
-    # turning point
-    if best_system_description == 'PT' and best_order >= 2:
-        plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
+        # turning point
+        if best_system_description == 'PT' and best_order >= 2:
+            # tangent
+            plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='turning point tangent', linestyle='--', color='cyan')
+            plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
+    
+    if best_system_description == 'IT':
+        # tangent
+        plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='tangent', linestyle='--', color='cyan')
 
 
     # mark t_u and t_g

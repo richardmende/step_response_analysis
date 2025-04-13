@@ -54,7 +54,7 @@ best_overall_model = None
 best_overall_params = None
 best_window_length_for_savgol = None
 
-max_order = 20
+max_order = 10
 
 for model_type in model_types:
     for order in range(1, max_order + 1):
