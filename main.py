@@ -38,7 +38,7 @@ def step_response(model_type, order, parameters, t):
         raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
+csv_file_path = 'data_for_it_systems/real_it10_response.csv'
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
