@@ -13,26 +13,26 @@ from calculate_characteristic_values import calculate_characteristic_value_for_e
 def step_response(model_type, order, parameters, t):
     
     if model_type == 'PT':
-        window_length_for_savgol = round(len(t) / 3)
+        savgol = round(len(t) / 3)
     elif model_type == 'IT':
-        window_length_for_savgol = round(t[-1] / 3)
+        savgol = round(t[-1] / 3)
 
-    if window_length_for_savgol % 2 == 0:
-        window_length_for_savgol += 1
+    if savgol % 2 == 0:
+        savgol += 1
 
     if model_type == 'PT':
         response = parameters['K']
         for i in range(1, order + 1):
             T = parameters[f'T{i}']
             response *= (1 - np.exp(-t / T))
-        return response, window_length_for_savgol
+        return response, savgol
     
     elif model_type == 'IT':
         response = np.copy(t)
         for i in range(1, order + 1):
             T = parameters[f'T{i}']
             response *= np.clip((1 - np.exp(-t / T)), 0, 1) 
-        return response, window_length_for_savgol
+        return response, savgol
     
     else:
         raise ValueError("Unknown description!")
@@ -69,7 +69,7 @@ for model_type in model_types:
                 response, window_length_for_savgol = step_response(model_type=model_type, order=order, parameters=param_dict, t=time_values)
             except:
                 return np.inf
-
+            
             smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
 
             mae = mean_absolute_error(smoothed_values_savgol, response)
@@ -111,22 +111,29 @@ for model_type in model_types:
             best_overall_params = params
             best_window_length_for_savgol = window_length_for_savgol
 
+best_fitting_model_type = best_overall_model[0]
+best_fitting_order = best_overall_model[1]
 
 
 print("\n\nBest model found:")
-print(f"Type: {best_overall_model[0]}{best_overall_model[1]}")
+print(f"Type: {best_fitting_model_type}{best_fitting_order}")
 print(f"Params: {best_overall_params}")
 print(f"Score: {best_overall_score:.4f}")
 
 
-param_dict = {'K': best_overall_params[0]}
-for i in range(1, best_overall_model[1] + 1):
-    param_dict[f'T{i}'] = best_overall_params[i]
+if best_fitting_model_type == 'PT':
+    param_dict = {'K': best_overall_params[0]}
+    for i in range(1, best_fitting_order + 1):
+        param_dict[f'T{i}'] = best_overall_params[i]
+elif best_fitting_model_type == 'IT':
+    param_dict = {}
+    for i in range(best_fitting_order):
+        param_dict[f'T{i+1}'] = best_overall_params[i]
 
 
 best_response, _ = step_response(
-    model_type=best_overall_model[0],
-    order=best_overall_model[1],
+    model_type=best_fitting_model_type,
+    order=best_fitting_order,
     parameters=param_dict,
     t=time_values
 )
@@ -143,7 +150,7 @@ axes[0].set_title('Comparison between Real and Smoothed Step Response')
 axes[0].legend()
 
 axes[1].plot(time_values, smoothed_values_savgol, label='Smoothed Step Response', color='green', linestyle='--')
-axes[1].plot(time_values, best_response, label=f'Best Fit ({best_overall_model[0]}{best_overall_model[1]})', color='blue')
+axes[1].plot(time_values, best_response, label=f'Best Fit ({best_fitting_model_type}{best_fitting_order})', color='blue')
 axes[1].set_xlabel('Time [s]')
 axes[1].set_ylabel('Step Response x(t)')
 axes[1].set_title('Comparison between Smoothed Step Response and Best Fit of System Models')
