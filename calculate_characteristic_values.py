@@ -58,29 +58,49 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
             t_u = - y_axis_intercept / slope                # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
             t_g = (K_infinity - y_axis_intercept) / slope
-       
+        
+        characteristic_values = K_S, t_sum, t_u, t_g, time_percent_values
+    
+
     
     elif best_system_description == 'IT':
 
-        first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+        if best_order == 1:
 
-        slope = first_derivative[-1]
+            first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+
+            slope = first_derivative[-1]
+
+            endpoint_time = time_values_response[-1]
+            endpoint_value = best_fitting_time_response[-1]
+
+            y_axis_intercept = endpoint_value - slope * endpoint_time
+
+            tangent = slope * time_values_response + y_axis_intercept
+
+
+        elif best_order >= 2:
+
+            # calculating turning point
+            first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+            second_derivative = np.gradient(first_derivative, time_values_response)
+
+            zero_crossing = np.where(np.diff(np.sign(second_derivative)))[0]
+            
+            idx = zero_crossing[0]
+            turning_point_time = time_values_response[idx]
+            turning_point_value = best_fitting_time_response[idx]
+
+            # turning point tangent
+            slope = first_derivative[idx]
+            y_axis_intercept = turning_point_value - slope * turning_point_time
+            tangent = slope * time_values_response + y_axis_intercept     # turning_point_tangent
+           
         K_S = np.copy(slope)
-
-        endpoint_time = time_values_response[-1]
-        endpoint_value = best_fitting_time_response[-1]
-
-        y_axis_intercept = endpoint_value - slope * endpoint_time
-
-        tangent = slope * time_values_response + y_axis_intercept
-
-        t_u = - y_axis_intercept / slope
-
+        t_u = - y_axis_intercept / slope     # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
         t_g = 1
 
-        t_sum = None
-
-        time_percent_values = None
+        characteristic_values = K_S, t_u, t_g
 
 
     plt.figure(figsize=(10, 6))
@@ -96,44 +116,49 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         # Markiere die Zeitpunkte t_10, t_20, t_50, t_80, t_90
         for i, percent in enumerate(percentages):
             plt.scatter(time_percent_values[i], percentage_values[i], label=f't_{percent} = {time_percent_values[i]:.2f}s', zorder=5)
-    
 
-        # tangent
-        plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='tangent', linestyle='--', color='cyan')
-
-        # turning point
-        if best_system_description == 'PT' and best_order >= 2:
+        if best_order == 1:
             # tangent
+            plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='tangent', linestyle='--', color='cyan')
+
+        if best_order >= 2:
+            # turning point tangent
             plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='turning point tangent', linestyle='--', color='cyan')
+            # turning point
             plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
     
     if best_system_description == 'IT':
-        # tangent
-        plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='tangent', linestyle='--', color='cyan')
+
+        if best_order == 1:
+            # tangent
+            plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='tangent', linestyle='--', color='cyan')
+        
+        if best_order >= 2:
+            # turning point tangent
+            plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='turning point tangent', linestyle='--', color='cyan')
+            # turning point
+            plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
 
 
-    # mark t_u and t_g
+    # mark t_u
     plt.axvline(t_u, color='green', linestyle='--', label=f't_u = {t_u:.2f}s')
-    plt.axvline(t_g, color='orange', linestyle='--', label=f't_g = {t_g:.2f}s')
-
+    
     if best_system_description == 'PT':
+        # mark t_g
+        plt.axvline(t_g, color='orange', linestyle='--', label=f't_g = {t_g:.2f}s')
 
         # mark t_sum
         plt.axvline(t_sum, color='purple', linestyle='--', label=f't_sum = {t_sum:.2f}s')
 
-    # Labels und Titel
+
     plt.title("Sprungantwort und wichtige Zeitpunkte")
     plt.xlabel("time [s]")
     plt.ylabel("step response response")
     plt.legend(loc="best")
     plt.grid(True)
 
-    # Anzeigen des Plots
     plt.tight_layout()
     plt.show()
-    
-
-    characteristic_values = K_S, t_sum, t_u, t_g, time_percent_values
 
 
     return characteristic_values
