@@ -38,7 +38,7 @@ def step_response(model_type, order, parameters, t):
         raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
+csv_file_path = 'data_for_it_systems/real_it2_response.csv'
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
@@ -95,13 +95,21 @@ for model_type in model_types:
 
             return score
 
-        x0 = [1.0] + [time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)]       # "x0 = [1.0] * (order + 1)" for similar time constants
+
+        if model_type == 'PT':
+            x0 = [1.0] + [time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)]       # "x0 = [1.0] * (order + 1)" for similar time constants
+        
+        if model_type == 'IT':
+            x0 = [time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)] + [0]
+
         bounds = [(0.001, 2)] + [(0.1, time_values[-1])] * order
 
         result = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
 
         score = result.fun
         params = result.x
+
+        print("Startwerte:", x0)
 
         print(f"Score: {score:.4f} \nParams: {params}")
 

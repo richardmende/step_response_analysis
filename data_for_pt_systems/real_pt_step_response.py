@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
-def generate_ptn_response(n, K=1.0, time_end=50, num_points=500):
+def generate_real_ptn_response(n, K=1.0, time_end=50, num_points=500):
     """
     Funktion zur Berechnung und Speicherung der Sprungantwort eines PT_n-Systems.
     
@@ -44,6 +44,9 @@ def generate_ptn_response(n, K=1.0, time_end=50, num_points=500):
     file_path = os.path.join(script_dir, file_name)
     df.to_csv(file_path, index=False)
 
+
+
+max_ptn_order = 10
 # Dateien für PT1 bis PT10 erzeugen
-for order in range(1, 11):
-    generate_ptn_response(order)
+for order in range(1, max_ptn_order+1):
+    generate_real_ptn_response(order)

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
-def generate_itn_response(n, K=1.0, time_end=50, num_points=500):
+def generate_real_itn_response(n, K=1.0, time_end=50, num_points=500):
     """
     Funktion zur Berechnung und Speicherung der Sprungantwort eines IT_n-Systems.
     
@@ -50,5 +50,7 @@ def generate_itn_response(n, K=1.0, time_end=50, num_points=500):
 
 
 
-for order in range(1, 11):
-    generate_itn_response(order)
+max_itn_order = 10
+
+for order in range(1, max_itn_order + 1):
+    generate_real_itn_response(order)
