@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
-def generate_real_ptn_response(n, K=1.0, time_end=50, num_points=500):
+def generate_ideal_ptn_response(n, K=1.0, time_end=50, num_points=500):
     """
     Funktion zur Berechnung und Speicherung der Sprungantwort eines PT_n-Systems.
     
@@ -23,14 +23,9 @@ def generate_real_ptn_response(n, K=1.0, time_end=50, num_points=500):
     response = np.ones_like(time)
     for i in range(n):
         response *= (1 - np.exp(-time / time_constants[i]))
-
+    
     # Verstärkung
     response *= K
-
-    # Füge Rauschen hinzu
-    np.random.seed(42)
-    noise = np.random.normal(0, 0.05, len(time))
-    response_with_noise = response + noise
 
     # Step Response (bleibt konstant bei 1)
     step_response = np.ones_like(time)
@@ -38,12 +33,12 @@ def generate_real_ptn_response(n, K=1.0, time_end=50, num_points=500):
     # DataFrame erzeugen
     df = pd.DataFrame({
         'Time': time,
-        'Response': response_with_noise,
+        'Response': response,
         'Step Response': step_response
     })
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_name = f'real_pt{n}_response.csv'
+    file_name = f'ideal_pt{n}_response.csv'
     file_path = os.path.join(script_dir, file_name)
     df.to_csv(file_path, index=False)
 
@@ -52,4 +47,4 @@ def generate_real_ptn_response(n, K=1.0, time_end=50, num_points=500):
 max_ptn_order = 10
 # Dateien für PT1 bis PT10 erzeugen
 for order in range(1, max_ptn_order+1):
-    generate_real_ptn_response(order)
+    generate_ideal_ptn_response(order)
