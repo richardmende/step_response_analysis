@@ -38,7 +38,7 @@ def step_response(model_type, order, parameters, t):
         raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_pt_systems/real_pt1_response.csv'
+csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
@@ -104,12 +104,12 @@ for model_type in model_types:
 
 
         if model_type == 'PT':
-            x0 = [1.0] + [time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)]       # "x0 = [1.0] * (order + 1)" for similar time constants
-            bounds = [(0.001, 2)] + [(0.1, time_values[-1])] * order
+            x0 = [1.0] + [0.5 * time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)]
+            bounds = [(np.min(response_values), np.max(response_values))] + [(time_values[1], time_values[-1])] * order
         
         if model_type == 'IT':
             x0 = [((n / (order + 1)) ** 1.5) * time_values[-1] for n in range(1, order + 1)]
-            bounds = [(0.1, time_values[-1])] * order
+            bounds = [(time_values[1], time_values[-1])] * order
 
         result = minimize(objective, x0, bounds=bounds, method='L-BFGS-B')
 
