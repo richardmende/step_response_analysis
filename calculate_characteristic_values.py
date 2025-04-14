@@ -29,21 +29,34 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
             diff = abs(A1 - A2)
 
-            return diff
+            return diff, A1, A2
 
-        result = minimize_scalar(objective, args=(time_values_response, best_fitting_time_response, K_infinity), bounds = (time_values_response[1], time_values_response[-1]), method='bounded')
+        def minimize_and_get_A1_A2(t, x, k_inf, time_values_response):
+            # Wrapper für die Objective-Funktion
+            def wrapper(t_split):
+                diff, A1, A2 = objective(t_split, t, x, k_inf)
+                wrapper.A1 = A1  # Speichern von A1
+                wrapper.A2 = A2  # Speichern von A2
+                return diff
 
-        t_sum = result.x
-        idx = np.searchsorted(time_values_response, t_sum)
+            result = minimize_scalar(wrapper, bounds=(time_values_response[1], time_values_response[-1]), method='bounded')
+    
+            # A1 und A2 nach der Minimierung abrufen
+            return result, wrapper.A1, wrapper.A2
+    
+        result, A_1, A_2 = minimize_and_get_A1_A2(time_values_response, best_fitting_time_response, K_infinity, time_values_response)
 
-        plt.plot(time_values_response, best_fitting_time_response, label='Sprungantwort $x(t)$')
-        plt.fill_between(time_values_response[:idx], 0, best_fitting_time_response[:idx], alpha=0.3, label='A1', color='green')
-        plt.fill_between(time_values_response[idx:], best_fitting_time_response[idx:], K_infinity, alpha=0.3, label='A2', color='limegreen')
-        plt.axvline(t_sum, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum:.4f}')
-        plt.axhline(K_infinity, color='gray', linestyle=':', label='$K_\\infty$')
-        plt.xlabel('Zeit $t$')
-        plt.ylabel('Sprungantwort $x(t)$')
-        plt.title('T-Summenverfahren (Direkte Variante)')
+        t_sum1 = result.x
+        idx = np.searchsorted(time_values_response, t_sum1)
+
+        plt.plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+        plt.fill_between(time_values_response[:idx], 0, best_fitting_time_response[:idx], alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
+        plt.fill_between(time_values_response[idx:], best_fitting_time_response[idx:], K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
+        plt.axvline(t_sum1, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
+        plt.axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
+        plt.xlabel('time $t$ [s]')
+        plt.ylabel('step response $x(t)$')
+        plt.title('T-sum (method 1)')
         plt.legend()
         plt.grid(True)
         plt.show()
@@ -51,15 +64,15 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         # t_sum method 2
 
         A_sum = trapezoid(K_infinity - best_fitting_time_response, time_values_response)
-        t_sum = A_sum / K_S
+        t_sum2 = A_sum / K_S
 
         plt.plot(time_values_response, best_fitting_time_response, label='Sprungantwort $x(t)$')
-        plt.fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label='A_sum', color='green')
-        plt.axvline(t_sum, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum:.4f}')
-        plt.axhline(K_infinity, color='gray', linestyle=':', label='$K_\\infty$')
-        plt.xlabel('Zeit $t$')
-        plt.ylabel('Sprungantwort $x(t)$')
-        plt.title('T-Summenverfahren (Direkte Variante)')
+        plt.fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='green')
+        plt.axvline(t_sum2, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
+        plt.axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
+        plt.xlabel('time $t$ [s]')
+        plt.ylabel('step response $x(t)$')
+        plt.title('T-sum (method 2)')
         plt.legend()
         plt.grid(True)
         plt.show()
@@ -107,7 +120,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             t_u = - y_axis_intercept / slope                # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
             t_g = (K_infinity - y_axis_intercept) / slope
         
-        characteristic_values = K_S, t_sum, t_u, t_g, time_percent_values
+        characteristic_values = [K_S, t_sum1, t_sum2, t_u, t_g, time_percent_values]
     
 
     
@@ -148,7 +161,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         t_u = - y_axis_intercept / slope     # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
         t_g = 1
 
-        characteristic_values = K_S, t_u, t_g
+        characteristic_values = [K_S, t_u, t_g]
 
 
     plt.figure(figsize=(10, 6))
@@ -194,9 +207,6 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
     if best_system_description == 'PT':
         # mark t_g
         plt.axvline(t_g, color='orange', linestyle='--', label=f't_g = {t_g:.2f}s')
-
-        # mark t_sum
-        plt.axvline(t_sum, color='purple', linestyle='--', label=f't_sum = {t_sum:.2f}s')
 
 
     plt.title("Sprungantwort und wichtige Zeitpunkte")
