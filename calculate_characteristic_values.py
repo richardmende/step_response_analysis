@@ -157,7 +157,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         if best_order == 1:
             # tangent
-            plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='tangent', linestyle='--', color='cyan')
+            plt.plot(time_values_response[time_values_response <= t_g], tangent[time_values_response <= t_g], label='tangent', linestyle='--', color='cyan')
 
         if best_order >= 2:
             # turning point tangent
