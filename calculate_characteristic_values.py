@@ -16,10 +16,9 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         # K_S wir auf die Sprunghöhe bezogen
         K_S = K_infinity / (step[-1] - step[0])
 
-
+        # t_sum method 1                                    # for pt1 also possible: t_sum = sum(best_fitting_params[1:])
         def objective(t_split, t, x, k_inf):
 
-            # t_sum
             idx = np.searchsorted(t, t_split)
 
             # A1: Fläche unterhalb der Sprungantwort bis t_i
@@ -49,7 +48,21 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         plt.grid(True)
         plt.show()
 
-        # before: t_sum = sum(best_fitting_params[1:])
+        # t_sum method 2
+
+        A_sum = trapezoid(K_infinity - best_fitting_time_response, time_values_response)
+        t_sum = A_sum / K_S
+
+        plt.plot(time_values_response, best_fitting_time_response, label='Sprungantwort $x(t)$')
+        plt.fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label='A_sum', color='green')
+        plt.axvline(t_sum, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum:.4f}')
+        plt.axhline(K_infinity, color='gray', linestyle=':', label='$K_\\infty$')
+        plt.xlabel('Zeit $t$')
+        plt.ylabel('Sprungantwort $x(t)$')
+        plt.title('T-Summenverfahren (Direkte Variante)')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 
         # time percent
