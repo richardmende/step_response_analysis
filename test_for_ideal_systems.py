@@ -11,42 +11,31 @@ from calculate_characteristic_values import calculate_characteristic_value_for_e
 
 
 def step_response(model_type, order, parameters, t):
-    
-    if model_type == 'PT':
-        savgol = round(len(t) / 3)
-    elif model_type == 'IT':
-        savgol = round(t[-1] / 3)
-
-    if savgol % 2 == 0:
-        savgol += 1
 
     if model_type == 'PT':
         response = parameters['K']
         for i in range(1, order + 1):
             T = parameters[f'T{i}']
             response *= (1 - np.exp(-t / T))
-        return response, savgol
+        return response
     
     elif model_type == 'IT':
         response = np.copy(t)
         for i in range(1, order + 1):
             T = parameters[f'T{i}']
             response *= np.clip((1 - np.exp(-t / T)), 0, 1) 
-        return response, savgol
+        return response
     
     else:
         raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_pt_systems/real_pt1_response.csv'
+csv_file_path = 'data_for_pt_systems/ideal_pt1_response.csv'
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
 response_values = df['Response'].values
 
-# Smoothed values with Savitzky-Golay filter, initial window length calculation
-window_length_for_savgol = round(len(time_values) / 3)  # Diese Zeile wird im Schritt Response neu berechnet
-smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
 
 model_types = ['PT', 'IT']
 best_overall_score = float('inf')
@@ -73,21 +62,22 @@ for model_type in model_types:
                 return np.inf
 
             try:
-                response, window_length_for_savgol = step_response(model_type=model_type, order=order, parameters=param_dict, t=time_values)
+                response = step_response(model_type=model_type, order=order, parameters=param_dict, t=time_values)
             except:
                 return np.inf
             
-            smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
+            local_response_values = np.nan_to_num(np.copy(response_values), nan=0.0)
+            response = np.nan_to_num(response, nan=0.0)
 
-            mae = mean_absolute_error(smoothed_values_savgol, response)
-            mse = mean_squared_error(smoothed_values_savgol, response)
+            mae = mean_absolute_error(local_response_values, response)
+            mse = mean_squared_error(local_response_values, response)
             rmse = np.sqrt(mse)
-            nrmse = rmse / (np.max(smoothed_values_savgol) - np.min(smoothed_values_savgol))
-            r2 = r2_score(smoothed_values_savgol, response)
+            nrmse = rmse / (np.max(local_response_values) - np.min(local_response_values))
+            r2 = r2_score(local_response_values, response)
             transformed_r2 = np.abs(r2 - 1)
-            mape = np.mean(np.abs((smoothed_values_savgol - response) / smoothed_values_savgol))
-            smape = np.mean(2 * np.abs(response - smoothed_values_savgol) / 
-                            (np.abs(smoothed_values_savgol) + np.abs(response)))
+            mape = np.mean(np.abs((local_response_values - response) / (local_response_values + 1e-9)))
+            smape = np.mean(2 * np.abs(response - local_response_values) / 
+                            (np.abs(local_response_values) + np.abs(response) + 1e-9))
             transformed_smape = np.exp(10 * smape) - 1
 
             score = (
@@ -116,13 +106,14 @@ for model_type in model_types:
         score = result.fun
         params = result.x
 
+        print("Startwerte:", x0)
+
         print(f"Score: {score:.4f} \nParams: {params}")
 
         if score < best_overall_score:
             best_overall_score = score
             best_overall_model = (model_type, order)
             best_overall_params = params
-            best_window_length_for_savgol = window_length_for_savgol
 
 best_fitting_model_type = best_overall_model[0]
 best_fitting_order = best_overall_model[1]
@@ -144,7 +135,7 @@ elif best_fitting_model_type == 'IT':
         param_dict[f'T{i+1}'] = best_overall_params[i]
 
 
-best_response, _ = step_response(
+best_response = step_response(
     model_type=best_fitting_model_type,
     order=best_fitting_order,
     parameters=param_dict,
@@ -156,13 +147,13 @@ best_response, _ = step_response(
 fig, axes = plt.subplots(1, 2)
 
 axes[0].plot(time_values, response_values, label='Real Step Response', color='red')
-axes[0].plot(time_values, smoothed_values_savgol, label='Smoothed Step Response', color='green', linestyle='--')
+axes[0].plot(time_values, response_values, label='Smoothed Step Response', color='green', linestyle='--')
 axes[0].set_xlabel('Time [s]')
 axes[0].set_ylabel('Step Response x(t)')
 axes[0].set_title('Comparison between Real and Smoothed Step Response')
 axes[0].legend()
 
-axes[1].plot(time_values, smoothed_values_savgol, label='Smoothed Step Response', color='green', linestyle='--')
+axes[1].plot(time_values, response_values, label='Smoothed Step Response', color='green', linestyle='--')
 axes[1].plot(time_values, best_response, label=f'Best Fit ({best_fitting_model_type}{best_fitting_order})', color='blue')
 axes[1].set_xlabel('Time [s]')
 axes[1].set_ylabel('Step Response x(t)')
