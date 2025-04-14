@@ -76,7 +76,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             tangent = time_values_response * best_fitting_params[0] / best_fitting_params[1]
             t_g = K_infinity * best_fitting_params[1] / best_fitting_params[0]                  # should be T1 !
 
-        elif best_order == 2:
+        elif best_order >= 2:
 
             # calculating turning point
             first_derivative = np.gradient(best_fitting_time_response, time_values_response)
@@ -111,7 +111,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[0,0].legend()
         axes[0,0].grid(True)
 
-        # t_sum (method 1)
+        # t_sum (method 2)
         axes[0,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
         axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='green')
         axes[0,1].axvline(t_sum2, color='red', linestyle=':', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
@@ -124,24 +124,24 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # tangent
         axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
-        axes[1,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[1,0].axvline(t_g, color='orange', linestyle=':', label=f'$T_g$ = {t_g:.2f}s')
 
         if best_order == 1:
             # tangent
             mask = time_values_response <= t_g
-            axes[1,0].plot(time_values_response[mask], tangent[mask], label='tangent', linestyle='--', color='cyan')
+            axes[1,0].plot(time_values_response[mask], tangent[mask], label='tangent', linestyle=':', color='cyan')
 
         elif best_order >= 2:
-            axes[1,0].axvline(t_u, color='green', linestyle='--', label=f'$T_u$ = {t_u:.2f}s')
+            axes[1,0].axvline(t_u, color='green', linestyle=':', label=f'$T_u$ = {t_u:.2f}s')
+
+            # turning point
+            axes[1,0].scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
 
             # turning point tangent
             mask = (time_values_response >= t_u) & (time_values_response <= t_g)
             axes[1,0].plot(time_values_response[mask], tangent[mask], label='turning point tangent', linestyle='--', color='cyan')
 
-            # turning point
-            axes[1,0].scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
-
+        axes[1,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[1,0].set_xlabel('time $t$ [s]')
         axes[1,0].set_ylabel('step response $x(t)$')
         axes[1,0].set_title('tangent')
@@ -150,12 +150,11 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # time percent
         axes[1,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
-        axes[1,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
-        
 
         for i, percent in enumerate(percentages):
             axes[1,1].scatter(time_percent_values[i], percentage_values[i], label=f'$t_{{{percent}}}$ = {time_percent_values[i]:.2f}s', zorder=5)
         
+        axes[1,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[1,1].set_xlabel('time $t$ [s]')
         axes[1,1].set_ylabel('step response $x(t)$')
         axes[1,1].set_title('time percent')
