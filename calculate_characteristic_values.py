@@ -76,7 +76,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             tangent = time_values_response * best_fitting_params[0] / best_fitting_params[1]
             t_g = K_infinity * best_fitting_params[1] / best_fitting_params[0]                  # should be T1 !
 
-        else:
+        elif best_order == 2:
 
             # calculating turning point
             first_derivative = np.gradient(best_fitting_time_response, time_values_response)
@@ -132,7 +132,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             mask = time_values_response <= t_g
             axes[1,0].plot(time_values_response[mask], tangent[mask], label='tangent', linestyle='--', color='cyan')
 
-        if best_order >= 2:
+        elif best_order >= 2:
             axes[1,0].axvline(t_u, color='green', linestyle='--', label=f'$T_u$ = {t_u:.2f}s')
 
             # turning point tangent
@@ -163,7 +163,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[1,1].grid(True)
 
         fig.tight_layout()
-        plt.show
+        plt.show()
         
         characteristic_values = [K_S, t_sum1, t_sum2, t_u, t_g, time_percent_values]
     
@@ -212,7 +212,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             # tangent
             plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='tangent', linestyle='--', color='cyan')
             
-        if best_order >= 2:
+        elif best_order >= 2:
             mask = (time_values_response >= t_u) & (time_values_response <= turning_point_time)
             # turning point tangent
             plt.plot(time_values_response[mask], tangent[mask], label='turning point tangent', linestyle='--', color='cyan')

@@ -58,6 +58,9 @@ best_window_length_for_savgol = None
 max_order = 20
 
 for model_type in model_types:
+
+    skip_model_type = False  # cancel flag
+
     for order in range(1, max_order + 1):
         print(f"\nOptimizing {model_type}{order} ...")
 
@@ -118,6 +121,12 @@ for model_type in model_types:
         params = result.x
 
         print(f"Score: {score:.4f} \nParams: {params}")
+
+        # early cancel loop
+        if score > 100000:
+            print(f"\nScore for {model_type}1 exceeds 100000. Skipping all further {model_type}-models.")
+            skip_model_type = True  # cancel this model type
+            break
 
         if score < best_overall_score:
             best_overall_score = score
