@@ -43,6 +43,7 @@ df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
 response_values = df['Response'].values
+step_values = df['Step Response'].values
 
 # Smoothed values with Savitzky-Golay filter, initial window length calculation
 window_length_for_savgol = round(len(time_values) / 3)  # Diese Zeile wird im Schritt Response neu berechnet
@@ -173,4 +174,4 @@ plt.tight_layout()
 plt.show()
 
 
-calculate_characteristic_value_for_every_method(best_fitting_model_type, best_fitting_order, best_overall_params, best_response, time_values)
+calculate_characteristic_value_for_every_method(best_fitting_model_type, best_fitting_order, best_overall_params, best_response, time_values, step_values)

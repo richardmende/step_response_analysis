@@ -31,6 +31,7 @@ def generate_real_itn_response(n, time_end=50, num_points=500):
 
     # Step input (bleibt konstant bei 1)
     step_response = np.ones_like(time)
+    step_response[0] = 0
 
     # DataFrame erstellen
     df = pd.DataFrame({

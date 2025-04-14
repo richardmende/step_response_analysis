@@ -7,17 +7,14 @@ from scipy.optimize import minimize_scalar
 
 
 
-def calculate_characteristic_value_for_every_method(best_system_description, best_order, best_fitting_params, best_fitting_time_response, time_values_response):
+def calculate_characteristic_value_for_every_method(best_system_description, best_order, best_fitting_params, best_fitting_time_response, time_values_response, step):
 
     if best_system_description == 'PT':
 
         K_infinity = best_fitting_params[0]
-        
-        # Skalierung auf Einheitssprung beachten !!!
-        # K_S = K_infinity / step_hight !!!
 
-        # hier zur VEREINFACHUNG und NACHVOLLZIEHBARKEIT!!!
-        K_S = K_infinity
+        # K_S wir auf die Sprunghöhe bezogen
+        K_S = K_infinity / (step[-1] - step[0])
 
 
         def objective(t_split, t, x, k_inf):
@@ -26,7 +23,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             idx = np.searchsorted(t, t_split)
 
             # A1: Fläche unterhalb der Sprungantwort bis t_i
-            A1 = trapezoid(x[:idx], t[:idx])                    # include starting value of input jump, here it is considered as 0 !!!
+            A1 = trapezoid(x[:idx] - step[0], t[:idx])
 
             # A2: Fläche zwischen Sprungantwort und k_inf ab t_i bis zum Ende
             A2 = trapezoid(k_inf - x[idx:], t[idx:])
@@ -57,7 +54,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # time percent
         percentages = [10, 20, 50, 80, 90]
-        percentage_values = [K_S * (p / 100.0) for p in percentages]
+        percentage_values = [(step[-1] - step[0]) * (p / 100.0) for p in percentages]
 
         time_percent_values = []
 
@@ -92,7 +89,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             # turning point tangent
             slope = first_derivative[idx]
             y_axis_intercept = turning_point_value - slope * turning_point_time
-            tangent = slope * time_values_response + y_axis_intercept     # turning_point_tangent
+            tangent = slope * time_values_response + y_axis_intercept               # turning_point_tangent
 
             t_u = - y_axis_intercept / slope                # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
             t_g = (K_infinity - y_axis_intercept) / slope
