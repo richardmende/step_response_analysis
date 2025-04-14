@@ -1,12 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
 from numpy import exp
-from scipy.signal import savgol_filter
 from scipy.optimize import minimize
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-
-from calculate_characteristic_values import calculate_characteristic_value_for_every_method
 
 
 
@@ -106,8 +104,6 @@ for model_type in model_types:
         score = result.fun
         params = result.x
 
-        print("Startwerte:", x0)
-
         print(f"Score: {score:.4f} \nParams: {params}")
 
         if score < best_overall_score:
@@ -162,6 +158,3 @@ axes[1].legend()
 
 plt.tight_layout()
 plt.show()
-
-
-calculate_characteristic_value_for_every_method(best_fitting_model_type, best_fitting_order, best_overall_params, best_response, time_values)
