@@ -12,9 +12,8 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
     if best_system_description == 'PT':
 
         K_infinity = best_fitting_params[0]
-
-        # K_S wir auf die Sprunghöhe bezogen
         K_S = K_infinity / (step[-1] - step[0])
+
 
         # t_sum method 1                                    # for pt1 also possible: t_sum = sum(best_fitting_params[1:])
         def objective(t_split, t, x, k_inf):
@@ -49,34 +48,11 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         t_sum1 = result.x
         idx = np.searchsorted(time_values_response, t_sum1)
 
-        plt.plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
-        plt.fill_between(time_values_response[:idx], 0, best_fitting_time_response[:idx], alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
-        plt.fill_between(time_values_response[idx:], best_fitting_time_response[idx:], K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
-        plt.axvline(t_sum1, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
-        plt.axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
-        plt.xlabel('time $t$ [s]')
-        plt.ylabel('step response $x(t)$')
-        plt.title('T-sum (method 1)')
-        plt.legend()
-        plt.grid(True)
-        plt.show()
 
         # t_sum method 2
 
         A_sum = trapezoid(K_infinity - best_fitting_time_response, time_values_response)
         t_sum2 = A_sum / K_S
-
-        plt.plot(time_values_response, best_fitting_time_response, label='Sprungantwort $x(t)$')
-        plt.fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='green')
-        plt.axvline(t_sum2, color='red', linestyle='--', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
-        plt.axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
-        plt.xlabel('time $t$ [s]')
-        plt.ylabel('step response $x(t)$')
-        plt.title('T-sum (method 2)')
-        plt.legend()
-        plt.grid(True)
-        plt.show()
-
 
         # time percent
         percentages = [10, 20, 50, 80, 90]
@@ -119,6 +95,75 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
             t_u = - y_axis_intercept / slope                # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
             t_g = (K_infinity - y_axis_intercept) / slope
+
+        
+        fig, axes = plt.subplots(2,2)
+
+        # t_sum (method 1)
+        axes[0,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+        axes[0,0].fill_between(time_values_response[:idx], 0, best_fitting_time_response[:idx], alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
+        axes[0,0].fill_between(time_values_response[idx:], best_fitting_time_response[idx:], K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
+        axes[0,0].axvline(t_sum1, color='red', linestyle=':', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
+        axes[0,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
+        axes[0,0].set_xlabel('time $t$ [s]')
+        axes[0,0].set_ylabel('step response $x(t)$')
+        axes[0,0].set_title('T-sum (method 1)')
+        axes[0,0].legend()
+        axes[0,0].grid(True)
+
+        # t_sum (method 1)
+        axes[0,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+        axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='green')
+        axes[0,1].axvline(t_sum2, color='red', linestyle=':', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
+        axes[0,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
+        axes[0,1].set_xlabel('time $t$ [s]')
+        axes[0,1].set_ylabel('step response $x(t)$')
+        axes[0,1].set_title('T-sum (method 2)')
+        axes[0,1].legend()
+        axes[0,1].grid(True)
+
+        # tangent
+        axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+        axes[1,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
+        axes[1,0].axvline(t_g, color='orange', linestyle=':', label=f'$T_g$ = {t_g:.2f}s')
+
+        if best_order == 1:
+            # tangent
+            mask = time_values_response <= t_g
+            axes[1,0].plot(time_values_response[mask], tangent[mask], label='tangent', linestyle='--', color='cyan')
+
+        if best_order >= 2:
+            axes[1,0].axvline(t_u, color='green', linestyle='--', label=f'$T_u$ = {t_u:.2f}s')
+
+            # turning point tangent
+            mask = (time_values_response >= t_u) & (time_values_response <= t_g)
+            axes[1,0].plot(time_values_response[mask], tangent[mask], label='turning point tangent', linestyle='--', color='cyan')
+
+            # turning point
+            axes[1,0].scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
+
+        axes[1,0].set_xlabel('time $t$ [s]')
+        axes[1,0].set_ylabel('step response $x(t)$')
+        axes[1,0].set_title('tangent')
+        axes[1,0].legend()
+        axes[1,0].grid(True)
+
+        # time percent
+        axes[1,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+        axes[1,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
+        
+
+        for i, percent in enumerate(percentages):
+            axes[1,1].scatter(time_percent_values[i], percentage_values[i], label=f'$t_{{{percent}}}$ = {time_percent_values[i]:.2f}s', zorder=5)
+        
+        axes[1,1].set_xlabel('time $t$ [s]')
+        axes[1,1].set_ylabel('step response $x(t)$')
+        axes[1,1].set_title('time percent')
+        axes[1,1].legend()
+        axes[1,1].grid(True)
+
+        fig.tight_layout()
+        plt.show
         
         characteristic_values = [K_S, t_sum1, t_sum2, t_u, t_g, time_percent_values]
     
@@ -156,67 +201,37 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             slope = first_derivative[idx]
             y_axis_intercept = turning_point_value - slope * turning_point_time
             tangent = slope * time_values_response + y_axis_intercept     # turning_point_tangent
-           
+
         K_S = np.copy(slope)
-        t_u = - y_axis_intercept / slope     # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED
+        t_u = - y_axis_intercept / slope     # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED !!!
         t_g = 1
 
-        characteristic_values = [K_S, t_u, t_g]
-
-
-    plt.figure(figsize=(10, 6))
-
-    # Plot der Sprungantwort
-    plt.plot(time_values_response, best_fitting_time_response, label="time response", color="blue")
-
-    if best_system_description == 'PT':
-
-        # Markiere den Endwert K_S
-        plt.axhline(K_S, color='red', linestyle='--', label=f'K_S = {K_S:.2f}')
-
-        # Markiere die Zeitpunkte t_10, t_20, t_50, t_80, t_90
-        for i, percent in enumerate(percentages):
-            plt.scatter(time_percent_values[i], percentage_values[i], label=f't_{percent} = {time_percent_values[i]:.2f}s', zorder=5)
-
-        if best_order == 1:
-            # tangent
-            plt.plot(time_values_response[time_values_response <= t_g], tangent[time_values_response <= t_g], label='tangent', linestyle='--', color='cyan')
-
-        if best_order >= 2:
-            # turning point tangent
-            plt.plot(time_values_response[(time_values_response >= t_u) & (time_values_response <= t_g)], tangent[(time_values_response >= t_u) & (time_values_response <= t_g)], label='turning point tangent', linestyle='--', color='cyan')
-            # turning point
-            plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
-    
-    if best_system_description == 'IT':
+        plt.plot(time_values_response, best_fitting_time_response, label="time response", color="blue")
 
         if best_order == 1:
             # tangent
             plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='tangent', linestyle='--', color='cyan')
-        
+            
         if best_order >= 2:
+            mask = (time_values_response >= t_u) & (time_values_response <= turning_point_time)
             # turning point tangent
-            plt.plot(time_values_response[(time_values_response >= t_u)], tangent[(time_values_response >= t_u)], label='turning point tangent', linestyle='--', color='cyan')
+            plt.plot(time_values_response[mask], tangent[mask], label='turning point tangent', linestyle='--', color='cyan')
             # turning point
             plt.scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
 
 
-    # mark t_u
-    plt.axvline(t_u, color='green', linestyle='--', label=f't_u = {t_u:.2f}s')
+        # mark t_u
+        plt.axvline(t_u, color='green', linestyle=':', label=f'$t_u$ = {t_u:.2f}s')
+
+        plt.title("tangent")
+        plt.xlabel("time $t$ [s]")
+        plt.ylabel("step response $x(t)$")
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
     
-    if best_system_description == 'PT':
-        # mark t_g
-        plt.axvline(t_g, color='orange', linestyle='--', label=f't_g = {t_g:.2f}s')
-
-
-    plt.title("Sprungantwort und wichtige Zeitpunkte")
-    plt.xlabel("time [s]")
-    plt.ylabel("step response response")
-    plt.legend(loc="best")
-    plt.grid(True)
-
-    plt.tight_layout()
-    plt.show()
+        characteristic_values = [K_S, t_u, t_g]
 
 
     return characteristic_values
