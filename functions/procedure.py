@@ -185,4 +185,7 @@ def procedure():
     plt.show()
 
 
-    calculate_characteristic_value_for_every_method(best_fitting_model_type, best_fitting_order, best_overall_params, best_response, time_values, step_values)
+    char_values = calculate_characteristic_value_for_every_method(best_fitting_model_type, best_fitting_order, best_overall_params, best_response, time_values, step_values)
+    
+
+    return best_fitting_model_type, best_fitting_order, char_values
