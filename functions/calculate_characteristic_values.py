@@ -199,8 +199,10 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             # Index finden, bei dem time_values_response der Zeitkonstante am nächsten ist
             index_tau = np.argmin(np.abs(time_values_response - tau))
 
+            mid_index = (index_tau + len(first_derivative) // 3) // 2
+
             # Steigung (Ableitung) an diesem Punkt
-            slope = first_derivative[index_tau]
+            slope = first_derivative[mid_index]
 
             # Entsprechender Zeitpunkt und Funktionswert
             endpoint_time = time_values_response[index_tau]
