@@ -133,7 +133,6 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # tangent
         axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response')
-        axes[1,0].plot([t_g, t_g], [step[0], K_infinity], color='limegreen', linestyle=':', label=f'$T_g$ = {t_g:.2f}s')
 
         if best_order == 1:
             # tangent
@@ -144,12 +143,9 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             tangent_times = np.append(tangent_times, t_g)
             tangent_values = np.append(tangent_values, tangent_tg_value)
 
-            axes[1,0].plot(tangent_times, tangent_values, label='tangent', linestyle='--', color='cyan')
+            axes[1,0].plot(tangent_times, tangent_values, label='tangent', linestyle=':', color='cyan')
 
         elif best_order >= 2:
-            axes[1,0].plot([t_u, t_u], [step[0], K_infinity], color='green', linestyle=':', label=f'$T_u$ = {t_u:.2f}s')
-
-
             # turning point
             axes[1,0].scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
 
@@ -157,6 +153,9 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             mask = (time_values_response >= t_u) & (time_values_response <= t_g)
             axes[1,0].plot(time_values_response[mask], tangent[mask], label='turning point tangent', linestyle='--', color='cyan')
 
+            axes[1,0].plot([t_u, t_u], [step[0], K_infinity], color='green', linestyle=':', label=f'$T_u$ = {t_u:.2f} s')
+
+        axes[1,0].plot([t_g, t_g], [step[0], K_infinity], color='limegreen', linestyle=':', label=f'$T_g$ = {t_g:.2f} s')
         axes[1,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[1,0].set_xlabel('time $t$ [s]')
         axes[1,0].set_ylabel('step response $x(t)$')
@@ -170,7 +169,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         for i, percent in enumerate(percentages):
             colors = ['orange', 'limegreen', 'cyan', 'green', 'maroon']
             single_color = colors[i % len(colors)]
-            axes[1,1].scatter(time_percent_values[i], percentage_values[i], label=f'$t_{{{percent}}}$ = {time_percent_values[i]:.2f}s', color=single_color, zorder=5)
+            axes[1,1].scatter(time_percent_values[i], percentage_values[i], label=f'$t_{{{percent}}}$ = {time_percent_values[i]:.2f} s', color=single_color, zorder=5)
             axes[1,1].plot([time_percent_values[i], time_percent_values[i]], [step[0], percentage_values[i]], color=single_color, linestyle='--', linewidth=1)
             axes[1,1].plot([step[0], time_percent_values[i]], [percentage_values[i], percentage_values[i]], color=single_color, linestyle='--', linewidth=1)
         
