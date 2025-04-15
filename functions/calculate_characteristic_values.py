@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 
 
 
-def calculate_characteristic_value_for_every_method(best_system_description, best_order, best_fitting_params, best_fitting_time_response, time_values_response, step):
+def calculate_characteristic_value_for_every_method(best_system_description, best_order, best_fitting_params, best_fitting_step_response, time_values_response, step):
 
     if best_system_description == 'PT':
 
@@ -43,7 +43,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             # A1 und A2 nach der Minimierung abrufen
             return result, wrapper.A1, wrapper.A2
     
-        result, A_1, A_2 = minimize_and_get_A1_A2(time_values_response, best_fitting_time_response, K_infinity, time_values_response)
+        result, A_1, A_2 = minimize_and_get_A1_A2(time_values_response, best_fitting_step_response, K_infinity, time_values_response)
 
         t_sum1 = result.x
         idx = np.searchsorted(time_values_response, t_sum1)
@@ -51,7 +51,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # t_sum method 2
 
-        A_sum = trapezoid(K_infinity - best_fitting_time_response, time_values_response)
+        A_sum = trapezoid(K_infinity - best_fitting_step_response, time_values_response)
         t_sum2 = A_sum / K_S
 
         # time percent
@@ -61,7 +61,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         time_percent_values = []
 
         for target in percentage_values:
-            number = np.argmax(np.array(best_fitting_time_response) >= target)
+            number = np.argmax(np.array(best_fitting_step_response) >= target)
             time_percent_values.append(time_values_response[number])
 
 
@@ -79,14 +79,14 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         elif best_order >= 2:
 
             # calculating turning point
-            first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+            first_derivative = np.gradient(best_fitting_step_response, time_values_response)
             second_derivative = np.gradient(first_derivative, time_values_response)
 
             zero_crossing = np.where(np.diff(np.sign(second_derivative)))[0]
             
             idx = zero_crossing[0]
             turning_point_time = time_values_response[idx]
-            turning_point_value = best_fitting_time_response[idx]
+            turning_point_value = best_fitting_step_response[idx]
 
             # turning point tangent
             slope = first_derivative[idx]
@@ -101,15 +101,15 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # t_sum (method 1)
         # useful for marking the correct areas
-        interp_func = interp1d(time_values_response, best_fitting_time_response)
+        interp_func = interp1d(time_values_response, best_fitting_step_response)
         x_tsum1 = interp_func(t_sum1)
         t_before = np.append(time_values_response[time_values_response < t_sum1], t_sum1)
-        x_before = np.append(best_fitting_time_response[time_values_response < t_sum1], x_tsum1)
+        x_before = np.append(best_fitting_step_response[time_values_response < t_sum1], x_tsum1)
         t_after = np.insert(time_values_response[time_values_response >= t_sum1], 0, t_sum1)
-        x_after = np.insert(best_fitting_time_response[time_values_response >= t_sum1], 0, x_tsum1)
+        x_after = np.insert(best_fitting_step_response[time_values_response >= t_sum1], 0, x_tsum1)
 
 
-        axes[0,0].plot(time_values_response, best_fitting_time_response, label='step response')
+        axes[0,0].plot(time_values_response, best_fitting_step_response, label='step response')
         axes[0,0].fill_between(t_before, 0, x_before, alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
         axes[0,0].fill_between(t_after, x_after, K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
         axes[0,0].plot([t_sum1, t_sum1], [step[0], K_infinity], color='orange', linestyle=':', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
@@ -121,8 +121,8 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[0,0].grid(True)
 
         # t_sum (method 2)
-        axes[0,1].plot(time_values_response, best_fitting_time_response, label='step response')
-        axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.2, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='limegreen')
+        axes[0,1].plot(time_values_response, best_fitting_step_response, label='step response')
+        axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_step_response, alpha=0.2, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='limegreen')
         axes[0,1].plot([t_sum2, t_sum2], [step[0], K_infinity], color='orange', linestyle=':', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
         axes[0,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[0,1].set_xlabel('time $t$ [s]')
@@ -132,7 +132,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[0,1].grid(True)
 
         # tangent
-        axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response')
+        axes[1,0].plot(time_values_response, best_fitting_step_response, label='step response')
 
         if best_order == 1:
             # tangent
@@ -164,7 +164,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[1,0].grid(True)
 
         # time percent
-        axes[1,1].plot(time_values_response, best_fitting_time_response, label='step response')
+        axes[1,1].plot(time_values_response, best_fitting_step_response, label='step response')
 
         for i, percent in enumerate(percentages):
             colors = ['orange', 'limegreen', 'cyan', 'green', 'maroon']
@@ -191,12 +191,12 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         if best_order == 1:
 
-            first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+            first_derivative = np.gradient(best_fitting_step_response, time_values_response)
 
             slope = first_derivative[-1]
 
             endpoint_time = time_values_response[-1]
-            endpoint_value = best_fitting_time_response[-1]
+            endpoint_value = best_fitting_step_response[-1]
 
             y_axis_intercept = endpoint_value - slope * endpoint_time
 
@@ -206,14 +206,14 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         elif best_order >= 2:
 
             # calculating turning point
-            first_derivative = np.gradient(best_fitting_time_response, time_values_response)
+            first_derivative = np.gradient(best_fitting_step_response, time_values_response)
             second_derivative = np.gradient(first_derivative, time_values_response)
 
             zero_crossing = np.where(np.diff(np.sign(second_derivative)))[0]
             
             idx = zero_crossing[0]
             turning_point_time = time_values_response[idx]
-            turning_point_value = best_fitting_time_response[idx]
+            turning_point_value = best_fitting_step_response[idx]
 
             # turning point tangent
             slope = first_derivative[idx]
@@ -224,7 +224,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         t_u = - y_axis_intercept / slope     # MAYBE ADDITIONAL DEAD TIME; THIS HAS TO BE CONSIDERED !!!
         t_g = 1
 
-        plt.plot(time_values_response, best_fitting_time_response, label="time response", color="blue")
+        plt.plot(time_values_response, best_fitting_step_response, label="time response", color="blue")
 
         if best_order == 1:
             # tangent
