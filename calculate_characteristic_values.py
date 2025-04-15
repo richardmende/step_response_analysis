@@ -122,7 +122,11 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[0,0].grid(True)
 
         # t_sum (method 2)
+<<<<<<< HEAD
         axes[0,1].plot(time_values_response, best_fitting_time_response, label='step response')
+=======
+        axes[0,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+>>>>>>> 222e615584091d4fb4b7e01f744379de1e6e4864
         axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.2, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='limegreen')
         axes[0,1].plot([t_sum2, t_sum2], [step[0], K_infinity], color='orange', linestyle=':', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
         axes[0,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
@@ -133,7 +137,11 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[0,1].grid(True)
 
         # tangent
+<<<<<<< HEAD
         axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response')
+=======
+        axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
+>>>>>>> 222e615584091d4fb4b7e01f744379de1e6e4864
         axes[1,0].plot([t_g, t_g], [step[0], K_infinity], color='limegreen', linestyle=':', label=f'$T_g$ = {t_g:.2f}s')
 
         if best_order == 1:
