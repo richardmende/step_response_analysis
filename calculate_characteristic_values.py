@@ -113,7 +113,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[0,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
         axes[0,0].fill_between(t_before, 0, x_before, alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
         axes[0,0].fill_between(t_after, x_after, K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
-        axes[0,0].axvline(t_sum1, color='red', linestyle=':', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
+        axes[0,0].plot([t_sum1, t_sum1], [step[0], K_infinity], color='orange', linestyle=':', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
         axes[0,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[0,0].set_xlabel('time $t$ [s]')
         axes[0,0].set_ylabel('step response $x(t)$')
@@ -123,8 +123,8 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # t_sum (method 2)
         axes[0,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
-        axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.3, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='green')
-        axes[0,1].axvline(t_sum2, color='red', linestyle=':', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
+        axes[0,1].fill_between(time_values_response, K_infinity, best_fitting_time_response, alpha=0.2, label=f'$A_\\Sigma$ = {A_sum:.4f}', color='limegreen')
+        axes[0,1].plot([t_sum2, t_sum2], [step[0], K_infinity], color='orange', linestyle=':', label=f'$T_\\Sigma$ = {t_sum2:.4f}')
         axes[0,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[0,1].set_xlabel('time $t$ [s]')
         axes[0,1].set_ylabel('step response $x(t)$')
@@ -134,7 +134,7 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
         # tangent
         axes[1,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
-        axes[1,0].axvline(t_g, color='orange', linestyle=':', label=f'$T_g$ = {t_g:.2f}s')
+        axes[1,0].plot([t_g, t_g], [step[0], K_infinity], color='limegreen', linestyle=':', label=f'$T_g$ = {t_g:.2f}s')
 
         if best_order == 1:
             # tangent
@@ -148,7 +148,8 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
             axes[1,0].plot(tangent_times, tangent_values, label='tangent', linestyle='--', color='cyan')
 
         elif best_order >= 2:
-            axes[1,0].axvline(t_u, color='green', linestyle=':', label=f'$T_u$ = {t_u:.2f}s')
+            axes[1,0].plot([t_u, t_u], [step[0], K_infinity], color='green', linestyle=':', label=f'$T_u$ = {t_u:.2f}s')
+
 
             # turning point
             axes[1,0].scatter(turning_point_time, turning_point_value, color='cyan', zorder=5, label='turning point')
@@ -168,7 +169,11 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         axes[1,1].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
 
         for i, percent in enumerate(percentages):
-            axes[1,1].scatter(time_percent_values[i], percentage_values[i], label=f'$t_{{{percent}}}$ = {time_percent_values[i]:.2f}s', zorder=5)
+            colors = ['orange', 'limegreen', 'cyan', 'green', 'maroon']
+            single_color = colors[i % len(colors)]
+            axes[1,1].scatter(time_percent_values[i], percentage_values[i], label=f'$t_{{{percent}}}$ = {time_percent_values[i]:.2f}s', color=single_color, zorder=5)
+            axes[1,1].plot([time_percent_values[i], time_percent_values[i]], [step[0], percentage_values[i]], color=single_color, linestyle='--', linewidth=1)
+            axes[1,1].plot([step[0], time_percent_values[i]], [percentage_values[i], percentage_values[i]], color=single_color, linestyle='--', linewidth=1)
         
         axes[1,1].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[1,1].set_xlabel('time $t$ [s]')
