@@ -4,6 +4,7 @@ import pandas as pd
 
 from scipy.integrate import trapezoid
 from scipy.optimize import minimize_scalar
+from scipy.interpolate import interp1d
 
 
 
@@ -100,9 +101,18 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         fig, axes = plt.subplots(2,2)
 
         # t_sum (method 1)
+        # useful for marking the correct areas
+        interp_func = interp1d(time_values_response, best_fitting_time_response)
+        x_tsum1 = interp_func(t_sum1)
+        t_before = np.append(time_values_response[time_values_response < t_sum1], t_sum1)
+        x_before = np.append(best_fitting_time_response[time_values_response < t_sum1], x_tsum1)
+        t_after = np.insert(time_values_response[time_values_response >= t_sum1], 0, t_sum1)
+        x_after = np.insert(best_fitting_time_response[time_values_response >= t_sum1], 0, x_tsum1)
+
+
         axes[0,0].plot(time_values_response, best_fitting_time_response, label='step response $x(t)$')
-        axes[0,0].fill_between(time_values_response[:idx], 0, best_fitting_time_response[:idx], alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
-        axes[0,0].fill_between(time_values_response[idx:], best_fitting_time_response[idx:], K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
+        axes[0,0].fill_between(t_before, 0, x_before, alpha=0.4, label=f'$A_1$ = {A_1:.4f}', color='green')
+        axes[0,0].fill_between(t_after, x_after, K_infinity, alpha=0.2, label=f'$A_2$ = {A_2:.4f}', color='limegreen')
         axes[0,0].axvline(t_sum1, color='red', linestyle=':', label=f'$T_\\Sigma$ = {t_sum1:.4f}')
         axes[0,0].axhline(K_infinity, color='gray', linestyle=':', label=f'$K_\\infty$ = {K_infinity:.4f}')
         axes[0,0].set_xlabel('time $t$ [s]')
@@ -129,7 +139,13 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
         if best_order == 1:
             # tangent
             mask = time_values_response <= t_g
-            axes[1,0].plot(time_values_response[mask], tangent[mask], label='tangent', linestyle=':', color='cyan')
+            tangent_times = time_values_response[mask]
+            tangent_values = tangent[mask]
+            tangent_tg_value = K_infinity            
+            tangent_times = np.append(tangent_times, t_g)
+            tangent_values = np.append(tangent_values, tangent_tg_value)
+
+            axes[1,0].plot(tangent_times, tangent_values, label='tangent', linestyle='--', color='cyan')
 
         elif best_order >= 2:
             axes[1,0].axvline(t_u, color='green', linestyle=':', label=f'$T_u$ = {t_u:.2f}s')
