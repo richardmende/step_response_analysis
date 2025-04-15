@@ -6,7 +6,7 @@ from scipy.signal import savgol_filter
 from scipy.optimize import minimize
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-from calculate_characteristic_values import calculate_characteristic_value_for_every_method
+from functions.calculate_characteristic_values import calculate_characteristic_value_for_every_method
 
 
 
@@ -41,7 +41,7 @@ def step_response(model_type, order, parameters, t):
         raise ValueError("Unknown description!")
 
 def procedure():
-    csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
+    csv_file_path = 'data_for_pt_systems/real_pt1_response.csv'
     df = pd.read_csv(csv_file_path)
 
     time_values = df['Time'].values

@@ -46,7 +46,7 @@ def print_possible_pid_table(model_type, model_order, characteristic_values):
         if model_order == 1:
 
             # preparing table for printing with 2 decimal places
-            table1 = [
+            table = [
                 ["type of controller", "parameter", "Kuhn1 (fast)", "Kuhn1 (normal)", "Kuhn2 (fast)", "Kuhn2 (normal)", "Latzel (10)", "Latzel (20)"],
                 ["P",  "K_R",  two_decimal_places(kuhn_fast1[0]), two_decimal_places(kuhn_normal1[0]), two_decimal_places(kuhn_fast2[0]), two_decimal_places(kuhn_normal2[0]), two_decimal_places(lat_10[0]), two_decimal_places(lat_20[0])],
                 ["PI", "K_R",  two_decimal_places(kuhn_fast1[1]), two_decimal_places(kuhn_normal1[1]), two_decimal_places(kuhn_fast2[1]), two_decimal_places(kuhn_normal2[1]), two_decimal_places(lat_10[1]), two_decimal_places(lat_20[1])],
@@ -56,7 +56,11 @@ def print_possible_pid_table(model_type, model_order, characteristic_values):
                 ["",   "T_NV", two_decimal_places(kuhn_fast1[5]), two_decimal_places(kuhn_normal1[5]), two_decimal_places(kuhn_fast2[5]), two_decimal_places(kuhn_normal2[5]), two_decimal_places(lat_10[5]), two_decimal_places(lat_20[5])]
             ]
 
-        if model_order >= 2:
+            # print tables as dataframes in a separate window
+            df = DataFrame(table)
+            show(all_pids=df)
+
+        elif model_order >= 2:
             # collecting values for tangent
             betrag = betragsoptimum_pid(K_S, T_u, T_g)
             chr_20 = chien_hrones_reswick_20_percent_pid(K_S, T_u, T_g)
@@ -128,10 +132,8 @@ def print_possible_pid_table(model_type, model_order, characteristic_values):
                 ["",   "T_NV", two_decimal_places(betrag[5]), two_decimal_places(chr_20[5]), two_decimal_places(chr_ap[5]), two_decimal_places(latzel[5]), two_decimal_places(oppelt[5]), two_decimal_places(samal[5]), two_decimal_places(zini[5])]
             ]
 
-    
-    
-    # print tables as dataframes in a separate window
-    df1 = DataFrame(table1)
-    df2 = DataFrame(table2)
-    df3 = DataFrame(table3)
-    show(all_pids=df1, strejc_10_90=df2, strejc_20_80=df3)
+            # print tables as dataframes in a separate window
+            df1 = DataFrame(table1)
+            df2 = DataFrame(table2)
+            df3 = DataFrame(table3)
+            show(all_pids=df1, strejc_10_90=df2, strejc_20_80=df3)
