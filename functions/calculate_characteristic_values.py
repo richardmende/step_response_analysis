@@ -193,13 +193,23 @@ def calculate_characteristic_value_for_every_method(best_system_description, bes
 
             first_derivative = np.gradient(best_fitting_step_response, time_values_response)
 
-            slope = first_derivative[-1]
+            # Zeitkonstante aus best_params
+            tau = best_fitting_params[0]
 
-            endpoint_time = time_values_response[-1]
-            endpoint_value = best_fitting_step_response[-1]
+            # Index finden, bei dem time_values_response der Zeitkonstante am nächsten ist
+            index_tau = np.argmin(np.abs(time_values_response - tau))
 
+            # Steigung (Ableitung) an diesem Punkt
+            slope = first_derivative[index_tau]
+
+            # Entsprechender Zeitpunkt und Funktionswert
+            endpoint_time = time_values_response[index_tau]
+            endpoint_value = best_fitting_step_response[index_tau]
+
+            # y-Achsenabschnitt berechnen
             y_axis_intercept = endpoint_value - slope * endpoint_time
 
+            # Tangente berechnen
             tangent = slope * time_values_response + y_axis_intercept
 
 
