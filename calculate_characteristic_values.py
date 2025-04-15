@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 
 from scipy.integrate import trapezoid
 from scipy.optimize import minimize_scalar
