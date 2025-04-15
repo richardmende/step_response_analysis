@@ -13,7 +13,10 @@ from calculate_characteristic_values import calculate_characteristic_value_for_e
 def step_response(model_type, order, parameters, t):
     
     if model_type == 'PT':
-        savgol = round(len(t) / 3)
+        if order == 1:
+            savgol = round(len(t) / 10)
+        elif order >= 2:
+            savgol = round(len(t) / 3)
     elif model_type == 'IT':
         savgol = round(t[-1] / 3)
 
@@ -38,16 +41,13 @@ def step_response(model_type, order, parameters, t):
         raise ValueError("Unknown description!")
 
 
-csv_file_path = 'data_for_pt_systems/real_pt1_response.csv'
+csv_file_path = 'data_for_pt_systems/real_pt10_response.csv'
 df = pd.read_csv(csv_file_path)
 
 time_values = df['Time'].values
 response_values = df['Response'].values
 step_values = df['Step Response'].values
 
-# Smoothed values with Savitzky-Golay filter, initial window length calculation
-window_length_for_savgol = round(len(time_values) / 3)  # Diese Zeile wird im Schritt Response neu berechnet
-smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
 
 model_types = ['PT', 'IT']
 best_overall_score = float('inf')
@@ -80,7 +80,7 @@ for model_type in model_types:
                 response, window_length_for_savgol = step_response(model_type=model_type, order=order, parameters=param_dict, t=time_values)
             except:
                 return np.inf
-            
+
             smoothed_values_savgol = savgol_filter(response_values, window_length=window_length_for_savgol, polyorder=3)
 
             mae = mean_absolute_error(smoothed_values_savgol, response)
@@ -132,16 +132,17 @@ for model_type in model_types:
             best_overall_score = score
             best_overall_model = (model_type, order)
             best_overall_params = params
-            best_window_length_for_savgol = window_length_for_savgol
+
 
 best_fitting_model_type = best_overall_model[0]
 best_fitting_order = best_overall_model[1]
 
 
-print("\n\nBest model found:")
+print("\n\nBest model found")
 print(f"Type: {best_fitting_model_type}{best_fitting_order}")
 print(f"Params: {best_overall_params}")
-print(f"Score: {best_overall_score:.4f}")
+print(f"Score: {best_overall_score:.4f}\n")
+
 
 
 if best_fitting_model_type == 'PT':
@@ -154,7 +155,7 @@ elif best_fitting_model_type == 'IT':
         param_dict[f'T{i+1}'] = best_overall_params[i]
 
 
-best_response, _ = step_response(
+best_response, best_window_length_for_savgol = step_response(
     model_type=best_fitting_model_type,
     order=best_fitting_order,
     parameters=param_dict,
@@ -162,6 +163,7 @@ best_response, _ = step_response(
 )
 
 
+smoothed_values_savgol = savgol_filter(response_values, window_length=best_window_length_for_savgol, polyorder=3)
 
 fig, axes = plt.subplots(1, 2)
 
