@@ -1,3 +1,3 @@
-from procedure_step_response import procedure
+from main_procedure import procedure
 
 procedure()
