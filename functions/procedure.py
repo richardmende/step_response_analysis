@@ -41,12 +41,15 @@ def step_response(model_type, order, parameters, t):
         raise ValueError("Unknown description!")
 
 def procedure():
-    csv_file_path = 'data_for_it_systems/real_it1_response.csv'
+    csv_file_path = 'data_for_pt_systems/real_pt1_response.csv'
     df = pd.read_csv(csv_file_path)
 
     time_values = df['Time'].values
-    response_values = df['Response'].values
+    response_values = -df['Response'].values
     step_values = df['Step Response'].values
+
+    max_value = np.max(response_values)
+    min_value = np.min(response_values)
 
 
     model_types = ['PT', 'IT']
@@ -109,7 +112,10 @@ def procedure():
 
             if model_type == 'PT':
                 x0 = [1.0] + [0.5 * time_values[-1] / (max_order - n + 1) for n in range(1, order + 1)]
-                bounds = [(np.min(response_values), np.max(response_values))] + [(time_values[1], time_values[-1])] * order
+                if abs(max_value) >= abs(min_value):
+                    bounds = [(min_value, 2*max_value)] + [(time_values[1], time_values[-1])] * order
+                else:
+                    bounds = [(2*min_value, max_value)] + [(time_values[1], time_values[-1])] * order
             
             if model_type == 'IT':
                 x0 = [((n / (order + 1)) ** 1.5) * time_values[-1] for n in range(1, order + 1)]
